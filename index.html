@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Student Picker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-row">
+      <div>
+        <h1>Random O'quvchi Tanlovchi</h1>
+        <p class="subtitle">Ismlarni yozing, rejimni tanlang va aylantiring!</p>
+      </div>
+      <div class="theme-switcher">
+        <label for="themeSel">Mavzu</label>
+        <select id="themeSel" aria-label="Theme">
+          <option value="system">Tizim</option>
+          <option value="light">Yoruq</option>
+          <option value="dark">Qorong'u</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <div class="field">
+        <label for="names">o'quvchilar ismlari</label>
+        <textarea id="names" placeholder="Ismlarni vergul bilan yohud yangi qatordan kiriting"></textarea>
+        <div class="hint"></div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="mode">Rejim</label>
+          <select id="mode">
+            <option value="wheel">Aylanma g'ildirak</option>
+            <option value="dice">Dice</option>
+            <option value="chest">Xazinalar sandig'i</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="question">Savollar fayli</label>
+          <input type="file" id="question" accept="image/*,.pdf,.txt,.doc,.docx" />
+          <div id="question-preview" class="preview"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="spinBtn" class="primary">Aylantirish</button>
+        <button id="clearBtn" class="ghost">Ismlarni tozalash</button>
+      </div>
+    </section>
+
+    <section class="stage">
+      <div id="wheelStage" class="stage-pane">
+        <div class="wheel-grid">
+          <div class="wheel-pane">
+            <div class="caption">O'quvchi</div>
+            <div class="wheel-wrap">
+              <canvas id="wheelCanvas" width="420" height="420"></canvas>
+              <div class="pointer">▼</div>
+            </div>
+          </div>
+          <div class="wheel-pane">
+            <div class="caption">Savol</div>
+            <div class="wheel-wrap">
+              <canvas id="questionCanvas" width="420" height="420"></canvas>
+              <div class="pointer">▼</div>
+            </div>
+            <div class="wheel-actions">
+              <button id="spinQuestionBtn" class="ghost" title="Spin question wheel only"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="diceStage" class="stage-pane hidden">
+        <div class="dice" id="dice">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <div id="chestStage" class="stage-pane hidden">
+        <div class="chest" id="chest">
+          <div class="lid"></div>
+          <div class="box"></div>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="label">Tanlangan o'quvchi</div>
+        <div id="resultName" class="result-name">—</div>
+        <div class="label" style="margin-top:10px;">Savol</div>
+        <div id="resultQuestion" class="result-question">—</div>
+        <div class="result-actions">
+          <button id="deleteBtn" class="danger" title="Remove this student from the list">O'chirish</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span></span>
+  </footer>
+
+  <!-- Mammoth.js for DOCX parsing (client-side) -->
+  <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
