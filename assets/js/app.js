@@ -20,6 +20,57 @@
     themeSel: document.getElementById('themeSel')
   };
 
+  // Simple WebAudio helper for UI sounds (no external files)
+  const audio = (() => {
+    let ctx = null;
+    const ensureCtx = () => {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      return ctx;
+    };
+    const now = () => ensureCtx().currentTime;
+    const out = () => ensureCtx().destination;
+
+    const tone = (freq = 600, dur = 0.05, gain = 0.045, type = 'square') => {
+      const c = ensureCtx();
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      o.connect(g);
+      g.connect(out());
+      const t = now();
+      // Envelope
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      // Slight vibrato for character
+      try {
+        const lfo = c.createOscillator();
+        const lfoGain = c.createGain();
+        lfo.frequency.value = 10;
+        lfoGain.gain.value = 4; // +/-4 Hz
+        lfo.connect(lfoGain).connect(o.frequency);
+        lfo.start(t);
+        lfo.stop(t + dur);
+      } catch {}
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    };
+
+    const click = () => tone(1200, 0.02, 0.035, 'square');
+    // Remove start sound per request: no tone on button tap
+    const startSpin = () => {};
+    const win = () => {
+      // Pleasant ascending chime: C5 -> E5 -> G5 -> C6
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      const gaps = [0, 110, 110, 140];
+      notes.forEach((f, i) => setTimeout(() => tone(f, 0.14, 0.05, 'sine'), gaps.slice(0, i + 1).reduce((a, b) => a + b, 0)));
+    };
+
+    const resume = async () => { try { await ensureCtx().resume(); } catch {} };
+    return { click, startSpin, win, resume };
+  })();
+
   // Helper: refresh both wheels from current inputs
   const refreshWheelsFromState = () => {
     if (studentWheel) studentWheel.setNames(parseNames(els.names.value));
@@ -176,6 +227,12 @@
     let items = [];
     let rotation = 0;
     let isSpinning = false;
+    let handlers = { onStart: null, onTick: null, onEnd: null };
+    // Highlight state for post-selection smooth blinking
+    let highlightIdx = -1;
+    let blinkRAF = null;
+    let blinkStart = 0;
+    const BLINK_PERIOD = 1400; // ms
 
     const randColor = (i) => {
       const hues = [265, 205, 155, 115, 45];
@@ -198,8 +255,24 @@
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, radius, start, end);
         ctx.closePath();
-        ctx.fillStyle = items.length ? randColor(i) : 'rgba(255,255,255,0.06)';
+        let baseColor = items.length ? randColor(i) : 'rgba(255,255,255,0.06)';
+        ctx.fillStyle = baseColor;
         ctx.fill();
+        // If this slice is highlighted, overlay a smooth white pulse
+        if (i === highlightIdx && items.length) {
+          const t = performance.now();
+          const p = ((t - blinkStart) % BLINK_PERIOD) / BLINK_PERIOD; // 0..1
+          const alpha = 0.55 * (0.5 - 0.5 * Math.cos(2 * Math.PI * p)); // 0..0.55
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, radius, start, end);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -284,6 +357,23 @@
       }
     }
 
+    const startBlink = (idx) => {
+      stopBlink();
+      highlightIdx = idx;
+      blinkStart = performance.now();
+      const loop = () => {
+        draw();
+        blinkRAF = requestAnimationFrame(loop);
+      };
+      blinkRAF = requestAnimationFrame(loop);
+    };
+
+    const stopBlink = () => {
+      if (blinkRAF) { cancelAnimationFrame(blinkRAF); blinkRAF = null; }
+      highlightIdx = -1;
+      draw();
+    };
+
     const setNames = (arr) => { items = arr.slice(); draw(); };
 
     const indexFromPointer = () => {
@@ -301,6 +391,9 @@
       const N = items.length;
       if (!N) return null;
       isSpinning = true;
+      // Stop any previous highlight blinking
+      stopBlink();
+      handlers.onStart && handlers.onStart();
       const targetIndex = Math.floor(Math.random() * N);
       const anglePer = (Math.PI * 2) / N;
       // Choose where inside the target slice we land.
@@ -327,6 +420,7 @@
       const total = delta + extra;
       const duration = 3000 + Math.random() * 1200;
       const start = performance.now();
+      let lastTickIdx = indexFromPointer();
       return new Promise(resolve => {
         const animate = (t) => {
           const elapsed = t - start;
@@ -334,6 +428,12 @@
           const eased = 1 - Math.pow(1 - p, 3);
           rotation = current + total * eased;
           draw();
+          // fire tick each time pointer crosses a slice
+          const curIdx = indexFromPointer();
+          if (curIdx !== lastTickIdx) {
+            handlers.onTick && handlers.onTick();
+            lastTickIdx = curIdx;
+          }
           if (p < 1) {
             requestAnimationFrame(animate);
           } else {
@@ -341,6 +441,9 @@
             rotation = (rotation % (Math.PI * 2));
             draw();
             const idx = indexFromPointer();
+            // Start blinking the landed slice
+            startBlink(idx);
+            handlers.onEnd && handlers.onEnd(idx);
             resolve(idx);
           }
         };
@@ -350,7 +453,9 @@
 
     // initial draw
     draw();
-    return { setNames, spin, indexFromPointer };
+    const setHandlers = (h) => { handlers = Object.assign({ onStart: null, onTick: null, onEnd: null }, h || {}); };
+    const clearHighlight = () => stopBlink();
+    return { setNames, spin, indexFromPointer, setHandlers, clearHighlight };
   }
 
   // Instantiate wheels
@@ -380,6 +485,8 @@
 
   // Actions
   const doSpin = async () => {
+    // Stop previous blinking as we're initiating a new selection
+    els.resultName.classList.remove('flash-win');
     const list = parseNames(els.names.value);
     if (els.mode.value === 'wheel') {
       if (list.length === 0) {
@@ -392,6 +499,19 @@
         const labels = questionLines.map((_, i) => String(i + 1));
         questionWheel.setNames(labels);
       }
+      // Ensure audio can play (browser gesture already satisfied by this click)
+      await audio.resume();
+      // Wire sound handlers
+      if (studentWheel) studentWheel.setHandlers({
+        onStart: () => {}, // no sound on button tap / spin start
+        onTick: () => audio.click(),
+        onEnd: () => audio.win()
+      });
+      if (questionWheel) questionWheel.setHandlers({
+        onStart: () => {},
+        onTick: () => audio.click(),
+        onEnd: () => {}
+      });
       disableActions(true);
       // Spin both in parallel (if question wheel exists)
       const [idx, qidx] = await Promise.all([
@@ -451,12 +571,16 @@
     els.names.value = '';
     saveState();
     els.resultName.textContent = '—';
+    els.resultName.classList.remove('flash-win');
     // reset shown question and clear question wheel visually
     els.resultQuestion.textContent = '—';
     updateDeleteEnabled();
     if (studentWheel) studentWheel.setNames([]);
     // Clear the questions wheel display as well (do not delete uploaded file)
     if (questionWheel) questionWheel.setNames([]);
+    // Stop any blinking highlights on wheels
+    if (studentWheel && studentWheel.clearHighlight) studentWheel.clearHighlight();
+    if (questionWheel && questionWheel.clearHighlight) questionWheel.clearHighlight();
   };
 
   const removeChosen = () => {
@@ -472,9 +596,13 @@
     // Refresh student wheel and clear selection
     if (studentWheel) studentWheel.setNames(list);
     els.resultName.textContent = '—';
+    els.resultName.classList.remove('flash-win');
     els.resultQuestion.textContent = '—';
     // Also clear the questions wheel visually so both wheels reset
     if (questionWheel) questionWheel.setNames([]);
+    // Stop any blinking highlights on wheels
+    if (studentWheel && studentWheel.clearHighlight) studentWheel.clearHighlight();
+    if (questionWheel && questionWheel.clearHighlight) questionWheel.clearHighlight();
     updateDeleteEnabled();
   };
 
@@ -495,16 +623,19 @@
 
   const flashResult = () => {
     const el = els.resultName;
+    // Restart CSS keyframe animation
+    el.classList.remove('flash-win');
+    // Force reflow to allow re-adding the class to restart animation
+    void el.offsetWidth;
+    el.classList.add('flash-win');
+    // Small scale pop using inline styles (complements chroma/blink)
     el.style.transition = 'none';
     el.style.transform = 'scale(1.0)';
-    el.style.color = '';
     requestAnimationFrame(() => {
-      el.style.transition = 'transform 250ms ease, color 300ms ease';
+      el.style.transition = 'transform 250ms ease';
       el.style.transform = 'scale(1.12)';
-      el.style.color = 'var(--accent-2)';
       setTimeout(() => {
         el.style.transform = 'scale(1.0)';
-        el.style.color = '';
       }, 300);
     });
   };
