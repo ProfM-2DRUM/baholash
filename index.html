@@ -3,13 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ProfM-2DRUM</title>
+  <title>ProfM-2DRUM </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
+  <!-- Animated background symbols -->
+  <div class="floating-bg" aria-hidden="true">
+    <span class="sym">🎵</span>
+    <span class="sym">🎓</span>
+    <span class="sym">📚</span>
+    <span class="sym">🎶</span>
+    <span class="sym">✏️</span>
+    <span class="sym">📐</span>
+    <span class="sym">🔬</span>
+    <span class="sym">🧮</span>
+    <span class="sym">🎼</span>
+    <span class="sym">🧪</span>
+    <span class="sym">📘</span>
+    <span class="sym">📝</span>
+    <span class="sym">🎻</span>
+    <span class="sym">🎷</span>
+    <span class="sym">🎺</span>
+    <span class="sym">🎧</span>
+    <span class="sym">🧠</span>
+    <span class="sym">🧭</span>
+    <span class="sym">📏</span>
+    <span class="sym">🔭</span>
+    <span class="sym">🧬</span>
+    <span class="sym">📖</span>
+    <span class="sym">🖊️</span>
+    <span class="sym">🧪</span>
+    <!-- Additional symbols to match CSS up to nth-child(36) -->
+    <span class="sym">🧫</span>
+    <span class="sym">🧷</span>
+    <span class="sym">🧲</span>
+    <span class="sym">🔢</span>
+    <span class="sym">🧰</span>
+    <span class="sym">🧪</span>
+    <span class="sym">🧬</span>
+    <span class="sym">📐</span>
+    <span class="sym">📎</span>
+    <span class="sym">📄</span>
+    <span class="sym">🧮</span>
+    <span class="sym">🧑‍🏫</span>
+  </div>
+  <!-- Floating icons on visible sides -->
+  <div class="floating-side left" aria-hidden="true">
+    <span class="sym">🎵</span>
+    <span class="sym">📚</span>
+    <span class="sym">🧪</span>
+    <span class="sym">🧠</span>
+    <span class="sym">🔭</span>
+    <span class="sym">📝</span>
+    <span class="sym">📘</span>
+    <span class="sym">🧮</span>
+    <span class="sym">🎼</span>
+    <span class="sym">📏</span>
+    <span class="sym">🧬</span>
+    <span class="sym">🎧</span>
+    <span class="sym">🧫</span>
+    <span class="sym">✏️</span>
+    <span class="sym">📐</span>
+    <span class="sym">🎓</span>
+  </div>
+  <div class="floating-side right" aria-hidden="true">
+    <span class="sym">🎵</span>
+    <span class="sym">📚</span>
+    <span class="sym">🧪</span>
+    <span class="sym">🧠</span>
+    <span class="sym">🔭</span>
+    <span class="sym">📝</span>
+    <span class="sym">📘</span>
+    <span class="sym">🧮</span>
+    <span class="sym">🎼</span>
+    <span class="sym">📏</span>
+    <span class="sym">🧬</span>
+    <span class="sym">🎧</span>
+    <span class="sym">🧫</span>
+    <span class="sym">✏️</span>
+    <span class="sym">📐</span>
+    <span class="sym">🎓</span>
+  </div>
   <header class="app-header">
     <div class="header-row">
       <div>
@@ -30,7 +107,7 @@
   <main class="container">
     <section class="controls">
       <div class="field">
-        <label for="names">o'quvchilar ismlari</label>
+        <label for="names">O'quvchilar ismlari</label>
         <textarea id="names" placeholder="Ismlarni vergul bilan yohud yangi qatordan kiriting"></textarea>
         <div class="hint"></div>
       </div>
@@ -112,7 +189,7 @@
   </main>
 
   <footer class="app-footer">
-    <span></span>
+    <span class="author">Author: Prof. Ma'rufjon Ashurov</span>
   </footer>
 
   <!-- Mammoth.js for DOCX parsing (client-side) -->
