@@ -135,9 +135,65 @@ body[data-theme='light'] .floating-side .sym { opacity: 0.24; text-shadow: 0 2px
 /* Ensure app sits above background */
 .app-header, .container, .app-footer { position: relative; z-index: 1; }
 .header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1100px; margin: 0 auto; }
-.theme-switcher { display: grid; grid-auto-flow: row; gap: 6px; text-align: right; }
-.theme-switcher label { font-size: 12px; color: var(--muted); }
-.theme-switcher select { background: var(--card); border: 1px solid rgba(0,0,0,0.08); color: var(--text); padding: 8px 10px; border-radius: 10px; }
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-switcher { 
+  display: grid; 
+  grid-auto-flow: row; 
+  gap: 6px; 
+  text-align: right; 
+}
+
+.theme-switcher label { 
+  font-size: 12px; 
+  color: var(--muted); 
+}
+
+.theme-switcher select { 
+  background: var(--card); 
+  border: 1px solid rgba(0,0,0,0.08); 
+  color: var(--text); 
+  padding: 8px 10px; 
+  border-radius: 10px; 
+  cursor: pointer;
+}
+
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.help-btn:hover {
+  background: #6a4eff;
+  transform: translateY(-1px);
+}
+
+.help-btn:active {
+  transform: translateY(0);
+}
+
+.help-icon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
 .app-header h1 {
   margin: 0 0 6px 0;
   font-weight: 800;
@@ -296,3 +352,22 @@ body[data-theme='light'] canvas#wheelCanvas { background: radial-gradient(400px 
 
 .preview { margin-top: 8px; color: var(--muted); font-size: 13px; }
 .preview img { max-width: 100%; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); margin-top: 6px; }
+
+.help-btn {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 8px 14px;
+  background-color: #e63946; /* red tone */
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.help-btn:hover {
+  background-color: #c62828; /* darker red on hover */
+  transform: translateY(-1px);
+}
+
+
