@@ -380,8 +380,8 @@ body[data-theme='light'] canvas#wheelCanvas { background: radial-gradient(400px 
   left: 50%;
   transform: translate(-50%, -50%);
   
-  width: 90px;
-  height: 90px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   
   background: linear-gradient(135deg, #6c63ff, #4dd599);
