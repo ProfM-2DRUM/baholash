@@ -17,7 +17,8 @@
     dice: document.getElementById('dice'),
     chest: document.getElementById('chest'),
     spinQuestionBtn: document.getElementById('spinQuestionBtn'),
-    themeSel: document.getElementById('themeSel')
+    themeSel: document.getElementById('themeSel'),
+    helpBtn: document.getElementById('helpBtn')
   };
 
   // Simple WebAudio helper for UI sounds (no external files)
@@ -94,6 +95,29 @@
       .map(s => s.trim())
       .filter(Boolean);
   };
+  // ===============================
+// УМНАЯ РАНДОМНОСТЬ (ВЕСОВАЯ)
+// ===============================
+
+// сколько раз каждый ученик выпадал
+const studentStats = new Map(); // name -> count
+
+// взвешенный выбор индекса
+function weightedRandomIndex(items) {
+  const weights = items.map(name => {
+    const count = studentStats.get(name) || 0;
+    return 1 / (1 + count); // чем чаще выпадал — тем меньше шанс
+  });
+
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return i;
+  }
+  return weights.length - 1;
+}
 
   const saveState = () => {
     const names = els.names.value || '';
@@ -394,7 +418,7 @@
       // Stop any previous highlight blinking
       stopBlink();
       handlers.onStart && handlers.onStart();
-      const targetIndex = Math.floor(Math.random() * N);
+      const targetIndex = weightedRandomIndex(items);
       const anglePer = (Math.PI * 2) / N;
       // Choose where inside the target slice we land.
       // Most of the time near the center; sometimes dramatically near the edge.
@@ -522,6 +546,10 @@
       if (idx != null && idx >= 0) {
         const chosen = list[idx];
         els.resultName.textContent = chosen;
+        studentStats.set(
+        chosen,
+        (studentStats.get(chosen) || 0) + 1
+      );
         // If we have a question wheel result index, use it; otherwise fall back to random line
         if (qidx != null && qidx >= 0 && questionLines.length) {
           const q = questionLines[qidx % questionLines.length];
@@ -569,6 +597,7 @@
 
   const clearNames = () => {
     els.names.value = '';
+    studentStats.clear();
     saveState();
     els.resultName.textContent = '—';
     els.resultName.classList.remove('flash-win');
@@ -640,6 +669,24 @@
     });
   };
 
+  // Help button functionality
+  if (els.helpBtn) {
+    els.helpBtn.addEventListener('click', () => {
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = 'ProfM-2DRUM dasturi.docx';
+      link.download = 'ProfM-2DRUM dasturi.docx';
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Play a click sound for feedback
+      audio.click();
+    });
+  }
+
   // Event listeners
   els.names.addEventListener('input', () => { saveState(); if (studentWheel) studentWheel.setNames(parseNames(els.names.value)); });
   els.mode.addEventListener('change', () => { updateModeVisibility(); saveState(); });
@@ -672,6 +719,14 @@
   updateModeVisibility();
   // Initialize wheel with any saved names to draw labels
   if (studentWheel) studentWheel.setNames(parseNames(els.names.value));
-  if (questionWheel) questionWheel.setNames(questionLines);
+  if (questionWheel) {
+  const labels = questionLines.map((_, i) => String(i + 1));
+  questionWheel.setNames(labels);
+}
+
   updateDeleteEnabled();
 })();
+
+
+
+
